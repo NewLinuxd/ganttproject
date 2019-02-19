@@ -775,25 +775,19 @@ public class GanttProject extends GanttProjectBase implements ResourceView, Gant
   public void openStartupDocument(String path) {
     if (path != null) {
       final Document document = getDocumentManager().getDocument(path);
-      // openStartupDocument(document);
-      getUndoManager().undoableEdit("OpenFile", new Runnable() {
-        @Override
-        public void run() {
-          try {
-            getProjectUIFacade().openProject(document, getProject());
-          } catch (DocumentException e) {
-            fireProjectCreated(); // this will create columns in the tables, which are removed by previous call to openProject()
-            if (!tryImportDocument(document)) {
-              getUIFacade().showErrorDialog(e);
-            }
-          } catch (IOException e) {
-            fireProjectCreated(); // this will create columns in the tables, which are removed by previous call to openProject()
-            if (!tryImportDocument(document)) {
-              getUIFacade().showErrorDialog(e);
-            }
-          }
+      try {
+        getProjectUIFacade().openProject(document, getProject());
+      } catch (DocumentException e) {
+        fireProjectCreated(); // this will create columns in the tables, which are removed by previous call to openProject()
+        if (!tryImportDocument(document)) {
+          getUIFacade().showErrorDialog(e);
         }
-      });
+      } catch (IOException e) {
+        fireProjectCreated(); // this will create columns in the tables, which are removed by previous call to openProject()
+        if (!tryImportDocument(document)) {
+          getUIFacade().showErrorDialog(e);
+        }
+      }
     }
   }
 
@@ -1292,16 +1286,6 @@ public class GanttProject extends GanttProjectBase implements ResourceView, Gant
     }
   }
 
-  public void setRowHeight(int value) {
-    tree.getTreeTable().getTable().setRowHeight(value);
-  }
-
-  public void repaint2() {
-    getResourcePanel().getResourceTreeTableModel().updateResources();
-    getResourcePanel().getResourceTreeTable().setRowHeight(20);
-    super.repaint();
-  }
-
   @Override
   public int getViewIndex() {
     if (getTabs() == null) {
@@ -1325,7 +1309,7 @@ public class GanttProject extends GanttProjectBase implements ResourceView, Gant
   public void refresh() {
     getTaskManager().processCriticalPath(getTaskManager().getRootTask());
     getResourcePanel().getResourceTreeTableModel().updateResources();
-    getResourcePanel().getResourceTreeTable().setRowHeight(20);
+    getResourcePanel().getResourceTreeTable().setRowHeight(getResourceChart().getModel().calculateRowHeight());
     for (Chart chart : PluginManager.getCharts()) {
       chart.reset();
     }
